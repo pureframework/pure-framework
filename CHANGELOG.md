@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-06-05
+
+### Changed
+
+- **Response** — renamed `success()` / `error()` to `isSuccess()` / `isError()` for clearer boolean predicate naming.
+
 ## [1.2.0] - 2026-06-04
 
 Initial public release of `pureframework/pure-framework`.

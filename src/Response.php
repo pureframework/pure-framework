@@ -49,12 +49,12 @@ class Response implements \JsonSerializable
 		return $this;
 	}
 
-	public function success()
+	public function isSuccess(): bool
 	{
 		return $this->status == self::SUCCESS;
 	}
 
-	public function error()
+	public function isError(): bool
 	{
 		return $this->status == self::ERROR;
 	}

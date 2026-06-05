@@ -23,8 +23,8 @@ final class ResponseTest extends TestCase
 	{
 		$response = new SuccessResponse('uuid-1', ['extra' => true]);
 
-		$this->assertTrue($response->success());
-		$this->assertFalse($response->error());
+		$this->assertTrue($response->isSuccess());
+		$this->assertFalse($response->isError());
 
 		$serialized = $response->jsonSerialize();
 		$this->assertSame(Response::SUCCESS, $serialized->status);
@@ -36,7 +36,7 @@ final class ResponseTest extends TestCase
 	{
 		$response = new ErrorResponse('failed', ['field' => 'bad']);
 
-		$this->assertTrue($response->error());
+		$this->assertTrue($response->isError());
 		$parsed = json_decode($response->json(), true);
 		$this->assertSame('error', $parsed['status']);
 		$this->assertSame('failed', $parsed['data']);

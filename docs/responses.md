@@ -1,6 +1,6 @@
 # Response envelope
 
-`SuccessResponse` and `ErrorResponse` wrap entity and API outcomes in a consistent shape. Handlers, CLI scripts, and JSON endpoints can branch on `$result->success()` without per-function return-type conventions.
+`SuccessResponse` and `ErrorResponse` wrap entity and API outcomes in a consistent shape. Handlers, CLI scripts, and JSON endpoints can branch on `$result->isSuccess()` without per-function return-type conventions.
 
 Related: [Forms and validation](forms-and-validation.md) · [Architecture](architecture.md) · [Example site](example-site.md)
 
@@ -18,7 +18,7 @@ Both types extend `Response` and serialize to JSON as:
 
 | Field | Role |
 |-------|------|
-| `status` | `"success"` or `"error"` — use `$response->success()` / `$response->error()` |
+| `status` | `"success"` or `"error"` — use `$response->isSuccess()` / `$response->isError()` |
 | `data` | Primary payload: UUID string, row object, error message, etc. |
 | `related` | Optional secondary payload (see below) |
 
@@ -65,7 +65,7 @@ return new ErrorResponse('Validation failed', $violations);
 return new ErrorResponse('Unable to save', ['code' => $pdoCode]);
 ```
 
-For HTML handlers, map `related` to form field errors or flash context. The example todo app uses helpers like `account_create_error_message(ErrorResponse $response)` to turn violation maps into user-visible strings.
+For HTML handlers, map `related` to form field errors or flash context. The example todo app uses helpers like `account_create_error_message(Response $response)` to turn violation maps into user-visible strings.
 
 ## Entity layer convention
 
@@ -118,11 +118,9 @@ function success_or_error(bool $test, mixed $data = null, mixed $error = null, m
 ```php
 $result = account_create($form->getValues());
 
-if ($result->success()) {
+if ($result->isSuccess()) {
     Display::redirect('/todos');
-}
-
-if ($result instanceof ErrorResponse) {
+} elseif ($result->isError()) {
     $registerError = account_create_error_message($result);
 }
 ```
@@ -134,7 +132,7 @@ Use `$result->data` for the primary value and `$result->related` when building r
 ```php
 $result = account_create($payload);
 
-if ($result->success()) {
+if ($result->isSuccess()) {
     HttpResponse::json($result);
     // or: HttpResponse::json($result, 201);
 }
@@ -152,7 +150,7 @@ For status without a JSON body (rare), use `HttpResponse::status(404)`.
 |----------------|---------|
 | `SuccessResponse($data, $related)` | Successful outcome envelope |
 | `ErrorResponse($data, $related)` | Failed outcome envelope |
-| `$response->success()` / `error()` | Boolean status checks |
+| `$response->isSuccess()` / `isError()` | Boolean status checks |
 | `$response->json()` | JSON string (logging, CLI, tests) |
 | `HttpResponse::json($payload, $statusCode, $exit)` | Emit JSON response |
 | `HttpResponse::status($statusCode)` | Set HTTP status only |
