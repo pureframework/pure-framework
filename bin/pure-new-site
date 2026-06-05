@@ -1,0 +1,19 @@
+#!/usr/bin/env php
+<?php
+
+/**
+ * Pure Framework
+ *
+ * CLI entry point for scripts/new-site.php.
+ *
+ * @copyright Copyright (c) 2014-2026 Jonathan Sharp
+ * @license   MIT https://opensource.org/licenses/MIT
+ * @link      https://github.com/pureframework/pure-framework
+ */
+
+
+declare(strict_types=1);
+
+require dirname(__DIR__) . '/scripts/new-site.php';
+
+exit(pure_new_site_main($argv));

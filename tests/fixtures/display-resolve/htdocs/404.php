@@ -1,0 +1,2 @@
+<?php
+// Htdocs root fallback

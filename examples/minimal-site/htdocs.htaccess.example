@@ -1,0 +1,23 @@
+Options -MultiViews -Indexes
+DirectorySlash Off
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Allowlisted PHP files served directly (maintenance, health checks)
+  RewriteRule ^offline\.php$ - [L]
+
+  # Block direct browser requests to other .php files
+  RewriteCond %{THE_REQUEST} \s/+[^\s?]*\.php(?:[?\s]|$) [NC]
+  RewriteCond %{REQUEST_URI} !^/offline\.php$ [NC]
+  RewriteRule ^ - [F,L]
+
+  # Serve existing non-PHP files (css, js, images)
+  RewriteCond %{REQUEST_FILENAME} -f
+  RewriteCond %{REQUEST_URI} !\.php$ [NC]
+  RewriteRule ^ - [L]
+
+  # Everything else → front controller
+  RewriteRule ^ index.php [L]
+</IfModule>

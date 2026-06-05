@@ -1,0 +1,108 @@
+#!/usr/bin/env php
+<?php
+
+/**
+ * Pure Framework
+ *
+ * Generate PHP row classes from SQL CREATE TABLE files.
+ *
+ * Cache file (default):
+ *   pure-generate-classes <sql-path> <cache-path> [--typed]
+ *   pure-generate-classes   (uses PURE_DB_SQL_PATH and PURE_DB_SQL_CACHE)
+ *
+ * Per-file output (PSR-4 autoload):
+ *   pure-generate-classes <sql-path> --output-dir=<dir> [--namespace=<Ns\Sub>] [--typed]
+ *
+ * @copyright Copyright (c) 2014-2026 Jonathan Sharp
+ * @license   MIT https://opensource.org/licenses/MIT
+ * @link      https://github.com/pureframework/pure-framework
+ */
+
+declare(strict_types=1);
+
+$autoload = dirname(__DIR__) . '/vendor/autoload.php';
+if (!is_file($autoload)) {
+    fwrite(STDERR, "Run composer install in the package root first.\n");
+    exit(1);
+}
+require_once $autoload;
+
+use PureFramework\DbGenerateClasses;
+
+function printUsage(): void
+{
+    fwrite(STDERR, "Usage:\n");
+    fwrite(STDERR, "  pure-generate-classes <sql-path> <cache-path> [--typed]\n");
+    fwrite(STDERR, "  pure-generate-classes <sql-path> --output-dir=<dir> [--namespace=<Ns\\Sub>] [--typed]\n");
+    fwrite(STDERR, "  pure-generate-classes   (PURE_DB_SQL_PATH + PURE_DB_SQL_CACHE)\n");
+}
+
+$namespace = null;
+$outputDir = null;
+$typed = false;
+$positionals = [];
+
+foreach (array_slice($argv, 1) as $arg) {
+    if ($arg === '--help' || $arg === '-h') {
+        printUsage();
+        exit(0);
+    }
+
+    if ($arg === '--typed') {
+        $typed = true;
+        continue;
+    }
+
+    if (str_starts_with($arg, '--namespace=')) {
+        $namespace = substr($arg, strlen('--namespace='));
+        continue;
+    }
+
+    if (str_starts_with($arg, '--output-dir=')) {
+        $outputDir = substr($arg, strlen('--output-dir='));
+        continue;
+    }
+
+    $positionals[] = $arg;
+}
+
+$sqlPath = $positionals[0] ?? (defined('PURE_DB_SQL_PATH') ? PURE_DB_SQL_PATH : '');
+$cachePath = $positionals[1] ?? (defined('PURE_DB_SQL_CACHE') ? PURE_DB_SQL_CACHE : '');
+
+if ($sqlPath === '') {
+    printUsage();
+    exit(1);
+}
+
+if ($outputDir === null && $cachePath === '') {
+    printUsage();
+    exit(1);
+}
+
+try {
+    $sqlFiles = DbGenerateClasses::listSqlFiles($sqlPath);
+    echo "Found SQL Files:\n";
+    print_r($sqlFiles);
+    echo "\n";
+
+    if ($outputDir !== null) {
+        $generatedClasses = DbGenerateClasses::generateToDirectory($sqlPath, $outputDir, $namespace, true, $typed);
+        echo "Output directory: {$outputDir}\n";
+        if ($namespace !== null && $namespace !== '') {
+            echo "Namespace: {$namespace}\n";
+        }
+    } else {
+        $generatedClasses = DbGenerateClasses::generateFromPath($sqlPath, $cachePath, true, $typed);
+        echo "Cache file: {$cachePath}\n";
+    }
+
+    if ($typed) {
+        echo "Typed output: yes\n";
+    }
+
+    echo "Generated Classes:\n";
+    print_r($generatedClasses);
+} catch (\Throwable $e) {
+    fwrite(STDERR, $e->getMessage() . "\n");
+    exit(1);
+}
