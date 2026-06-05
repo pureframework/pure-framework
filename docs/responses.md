@@ -98,17 +98,16 @@ function todo_create(string $accountUuid, array $data): SuccessResponse|ErrorRes
 
 Class-based entities (static methods returning the envelope for every public method) and procedural functions (envelope on writes, plain reads) are both valid — pick one style per app and document it.
 
-### Helper wrapper
-
-Applications may wrap the pattern in a small helper:
+Return explicit envelopes at each exit — do not wrap with a boolean helper:
 
 ```php
-function success_or_error(bool $test, mixed $data = null, mixed $error = null, mixed $related = null): SuccessResponse|ErrorResponse
-{
-    return $test
-        ? new SuccessResponse($data, $related)
-        : new ErrorResponse($error, $related);
+if ($invalid) {
+    return new ErrorResponse('Validation failed', $invalid);
 }
+
+// … insert …
+
+return new SuccessResponse($todo->todo_uuid);
 ```
 
 ## Handler patterns

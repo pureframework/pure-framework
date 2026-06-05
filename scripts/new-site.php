@@ -192,7 +192,7 @@ GIT,
   "type": "project",
   "require": {
     "php": ">=8.1",
-    "pureframework/pure-framework": "^1.2"
+    "pureframework/pure-framework": "^1.3"
   },
   "autoload-dev": {
     "files": [

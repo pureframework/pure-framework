@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-06-05
+
+### Fixed
+
+- **Codegen** — `parseSqlToConfig()` no longer treats `PRIMARY KEY`, `UNIQUE KEY`, `KEY`, and similar index lines as table columns (fixes typed `--typed` output when schemas define indexes).
+
+### Changed
+
+- Docs, scaffold, and security policy updated for **1.3.x** (`^1.3`, `1.3.x-dev` branch alias).
+- **responses.md** — document explicit `SuccessResponse` / `ErrorResponse` returns instead of a `success_or_error()` helper.
+
 ## [1.3.0] - 2026-06-05
 
 ### Changed

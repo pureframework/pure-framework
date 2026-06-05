@@ -11,7 +11,7 @@
 Published on [Packagist](https://packagist.org/packages/pureframework/pure-framework). New tags and pushes to `main` on GitHub update Packagist automatically via the GitHub webhook — no manual sync after the package is registered.
 
 ```bash
-composer require pureframework/pure-framework:^1.2
+composer require pureframework/pure-framework:^1.3
 ```
 
 ## Local path repository (development)
@@ -109,10 +109,10 @@ Packagist mirrors this repository through a **GitHub webhook**. To ship a new ve
 3. Tag and push:
 
    ```bash
-   git tag -a v1.2.1 -m "Brief release summary"
-   git push origin v1.2.1
+   git tag -a v1.3.1 -m "Brief release summary"
+   git push origin v1.3.1
    ```
 
 4. Packagist picks up the tag within minutes. Optionally draft a [GitHub Release](https://github.com/pureframework/pure-framework/releases) from the same tag.
 
-Consumers install stable versions with `^1.2` (or a specific tag). `dev-main` resolves to `1.2.x-dev` via Composer branch alias.
+Consumers install stable versions with `^1.3` (or a specific tag). `dev-main` resolves to `1.3.x-dev` via Composer branch alias.

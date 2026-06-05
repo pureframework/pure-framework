@@ -9,7 +9,7 @@ Thin PHP library: file-based routing, PDO database helpers, forms with constrain
 ## Install
 
 ```bash
-composer require pureframework/pure-framework:^1.2
+composer require pureframework/pure-framework:^1.3
 ```
 
 Packagist: [pureframework/pure-framework](https://packagist.org/packages/pureframework/pure-framework) (synced from GitHub automatically).

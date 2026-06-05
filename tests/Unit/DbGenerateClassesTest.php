@@ -225,6 +225,24 @@ SQL);
 		DbGenerateClasses::generateFromPath($sqlDir, $cacheFile);
 	}
 
+	public function testParseSqlToConfigIgnoresIndexDefinitions(): void
+	{
+		$sql = <<<'SQL'
+CREATE TABLE `account` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `account_uuid` BINARY(16) NOT NULL,
+    `username` VARCHAR(32) NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_account_uuid` (`account_uuid`),
+    KEY `idx_username` (`username`)
+) ENGINE=InnoDB;
+SQL;
+
+		$config = DbGenerateClasses::parseSqlToConfig($sql);
+		$this->assertIsArray($config);
+		$this->assertSame(['id', 'account_uuid', 'username'], array_keys($config['props']));
+	}
+
 	private function removeDir(string $dir): void
 	{
 		if (!is_dir($dir)) {

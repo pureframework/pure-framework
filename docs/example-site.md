@@ -88,7 +88,7 @@ Never place secrets in `htdocs/`.
 
 ### 1. `composer.json`
 
-- `"require": { "pureframework/pure-framework": "^1.2", "php": ">=8.1" }`
+- `"require": { "pureframework/pure-framework": "^1.3", "php": ">=8.1" }`
 - `"autoload-dev"` → `vendor/pureframework/pure-framework/stubs/globals.stub.php` for `$REQUEST`, `$ROUTE`, `$HANDLER` IDE hints
 
 **Option A (default):** no application `autoload` section required — load app code via `require_once` in `includes/index.php`.

@@ -27,8 +27,15 @@ class DbGenerateClasses
             $config['table'] = trim($matched[1]);
             if (preg_match_all('/\s*`([a-zA-Z0-9-_]+)`\s+([^,\n]+)/', $matched[2], $fields, PREG_SET_ORDER)) {
                 foreach ($fields as $f) {
+                    $definition = trim($f[2]);
+                    if (str_starts_with($definition, '(')) {
+                        continue;
+                    }
+                    if (preg_match('/^(PRIMARY|UNIQUE|KEY|CONSTRAINT|INDEX|FULLTEXT|SPATIAL)\b/i', $definition)) {
+                        continue;
+                    }
                     $columnName = $f[1];
-                    $config['props'][$columnName] = self::parseColumnMeta($columnName, trim($f[2]));
+                    $config['props'][$columnName] = self::parseColumnMeta($columnName, $definition);
                 }
 
                 return $config;
