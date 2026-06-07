@@ -111,4 +111,41 @@ class ObjectFactoryTest extends TestCase
 
         $this->assertSame('00000000-0000-0000-0000-000000000099', $obj->todo_uuid);
     }
+
+    public function testObjectUpdateFactoryHonorsUpdateSkip(): void
+    {
+        $obj = DB::objectUpdateFactory(account::class, [
+            'id' => 99,
+            'account_uuid' => '00000000-0000-0000-0000-000000000099',
+            'username' => 'carol',
+        ]);
+
+        $vars = get_object_vars($obj);
+        $this->assertArrayNotHasKey('id', $vars);
+        $this->assertArrayNotHasKey('account_uuid', $vars);
+        $this->assertSame('carol', $obj->username);
+    }
+
+    public function testObjectUpdateFactoryDoesNotAutoPopulateUuid(): void
+    {
+        $obj = DB::objectUpdateFactory(todo::class, [
+            'account_uuid' => '00000000-0000-0000-0000-000000000001',
+            'title' => 'Renamed',
+        ]);
+
+        $vars = get_object_vars($obj);
+        $this->assertArrayNotHasKey('todo_uuid', $vars);
+        $this->assertSame('Renamed', $obj->title);
+    }
+
+    public function testObjectUpdateFactoryFieldWhitelistStillApplies(): void
+    {
+        $obj = DB::objectUpdateFactory(account::class, [
+            'username' => 'dave',
+            'password_hash' => 'hacked',
+        ], ['username']);
+
+        $this->assertSame('dave', $obj->username);
+        $this->assertObjectNotHasProperty('password_hash', $obj);
+    }
 }

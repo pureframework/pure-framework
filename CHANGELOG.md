@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-06-06
+
+### Added
+
+- **Database** — `DB::objectUpdateFactory()` builds partial row objects for UPDATE; honors typed DTO `$updateSkip` (auto-increment PK, `created`, `{table}_uuid`).
+- **Codegen** — typed `--typed` output emits `$updateSkip` alongside existing `$insertSkip`.
+
 ## [1.3.1] - 2026-06-05
 
 ### Fixed

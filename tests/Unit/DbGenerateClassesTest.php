@@ -154,6 +154,7 @@ SQL;
 		$this->assertStringContainsString('auto-increment', $response->class);
 		$this->assertStringContainsString('@property ?string $deleted_at', $response->class);
 		$this->assertStringContainsString("public static array \$insertSkip = ['id', 'created', 'updated']", $response->class);
+		$this->assertStringContainsString("public static array \$updateSkip = ['id', 'created', 'account_uuid']", $response->class);
 		$this->assertStringContainsString("public static string \$uuidProperty = 'account_uuid'", $response->class);
 		$this->assertStringContainsString('public int $id = 0;', $response->class);
 		$this->assertStringContainsString('public ?string $deleted_at = null;', $response->class);
@@ -181,6 +182,7 @@ SQL);
 		$this->assertIsString($contents);
 		$this->assertStringContainsString('@property int $id', $contents);
 		$this->assertStringContainsString('$insertSkip', $contents);
+		$this->assertStringContainsString('$updateSkip', $contents);
 	}
 
 	public function testIsMigrationSqlFileMatchesNumericPrefix(): void

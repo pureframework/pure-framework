@@ -12,6 +12,10 @@ namespace PureFramework;
 
 class DB
 {
+    private const OBJECT_BUILD_GENERAL = 0;
+    private const OBJECT_BUILD_INSERT = 1;
+    private const OBJECT_BUILD_UPDATE = 2;
+
     // ------------------------------------------------------------
     // Utility methods that can be overridden
     // ------------------------------------------------------------
@@ -67,7 +71,13 @@ class DB
         ?array $fields = null,
         string|false|null $populateUuidProperty = null,
     ): object {
-        return self::buildObject($objectName, $data, $fields, $populateUuidProperty, forInsert: false);
+        return self::buildObject(
+            $objectName,
+            $data,
+            $fields,
+            $populateUuidProperty,
+            self::OBJECT_BUILD_GENERAL,
+        );
     }
 
     /**
@@ -82,7 +92,31 @@ class DB
         ?array $fields = null,
         string|false|null $populateUuidProperty = null,
     ): object {
-        return self::buildObject($objectName, $data, $fields, $populateUuidProperty, forInsert: true);
+        return self::buildObject(
+            $objectName,
+            $data,
+            $fields,
+            $populateUuidProperty,
+            self::OBJECT_BUILD_INSERT,
+        );
+    }
+
+    /**
+     * Build a row object for UPDATE. Honors DTO $updateSkip when present; never auto-populates UUID.
+     * Pass an explicit $fields whitelist when building from HTTP input.
+     */
+    public static function objectUpdateFactory(
+        string $objectName,
+        array|object $data,
+        ?array $fields = null,
+    ): object {
+        return self::buildObject(
+            $objectName,
+            $data,
+            $fields,
+            false,
+            self::OBJECT_BUILD_UPDATE,
+        );
     }
 
     /**
@@ -93,7 +127,7 @@ class DB
         array|object $data,
         ?array $fields,
         string|false|null $populateUuidProperty,
-        bool $forInsert,
+        int $mode,
     ): object {
         if (is_object($data)) {
             $data = get_object_vars($data);
@@ -103,8 +137,13 @@ class DB
         $nativeKeys = array_keys(get_object_vars($o));
 
         $allowedKeys = $nativeKeys;
-        if ($forInsert) {
+        if ($mode === self::OBJECT_BUILD_INSERT) {
             $skip = self::insertSkipForClass($objectName);
+            if ($skip !== []) {
+                $allowedKeys = array_values(array_diff($nativeKeys, $skip));
+            }
+        } elseif ($mode === self::OBJECT_BUILD_UPDATE) {
+            $skip = self::updateSkipForClass($objectName);
             if ($skip !== []) {
                 $allowedKeys = array_values(array_diff($nativeKeys, $skip));
             }
@@ -118,11 +157,13 @@ class DB
         $keys = array_values(array_intersect($keys, $allowedKeys));
 
         $uuidProperty = null;
-        if ($populateUuidProperty === false) {
+        if ($mode === self::OBJECT_BUILD_UPDATE) {
+            $uuidProperty = null;
+        } elseif ($populateUuidProperty === false) {
             $uuidProperty = null;
         } elseif (is_string($populateUuidProperty) && $populateUuidProperty !== '') {
             $uuidProperty = $populateUuidProperty;
-        } elseif ($populateUuidProperty === null && $forInsert) {
+        } elseif ($populateUuidProperty === null && $mode === self::OBJECT_BUILD_INSERT) {
             $uuidProperty = self::resolveUuidProperty($objectName, $o);
         }
 
@@ -148,6 +189,18 @@ class DB
         }
 
         $skip = $class::$insertSkip;
+
+        return is_array($skip) ? $skip : [];
+    }
+
+    /** @return list<string> */
+    private static function updateSkipForClass(string $class): array
+    {
+        if (!class_exists($class) || !property_exists($class, 'updateSkip')) {
+            return [];
+        }
+
+        $skip = $class::$updateSkip;
 
         return is_array($skip) ? $skip : [];
     }

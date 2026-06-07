@@ -115,4 +115,4 @@ Packagist mirrors this repository through a **GitHub webhook**. To ship a new ve
 
 4. Packagist picks up the tag within minutes. Optionally draft a [GitHub Release](https://github.com/pureframework/pure-framework/releases) from the same tag.
 
-Consumers install stable versions with `^1.3` (or a specific tag). `dev-main` resolves to `1.3.x-dev` via Composer branch alias.
+Consumers install stable versions with `^1.4` (or a specific tag). `dev-main` resolves to `1.4.x-dev` via Composer branch alias.

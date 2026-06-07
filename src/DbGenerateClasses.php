@@ -324,12 +324,16 @@ class DbGenerateClasses
     {
         $docLines = [" * Generated row class for table `{$tableName}`."];
         $insertSkip = [];
+        $updateSkip = [];
 
         foreach ($props as $columnName => $meta) {
             $docLines[] = ' * @property ' . self::phpTypeForColumn($meta) . ' $' . $columnName
                 . self::docSuffixForColumn($meta);
             if (self::shouldSkipOnInsert($meta)) {
                 $insertSkip[] = $columnName;
+            }
+            if (self::shouldSkipOnUpdate($tableName, $columnName, $meta)) {
+                $updateSkip[] = $columnName;
             }
         }
 
@@ -345,6 +349,12 @@ class DbGenerateClasses
             $encoded = array_map(static fn (string $col): string => "'{$col}'", $insertSkip);
             $cls .= "  /** @var list<string> Columns omitted on insert (auto-increment / DB defaults) */\n";
             $cls .= '  public static array $insertSkip = [' . implode(', ', $encoded) . "];\n\n";
+        }
+
+        if ($updateSkip !== []) {
+            $encoded = array_map(static fn (string $col): string => "'{$col}'", $updateSkip);
+            $cls .= "  /** @var list<string> Columns omitted on update (identity / immutable) */\n";
+            $cls .= '  public static array $updateSkip = [' . implode(', ', $encoded) . "];\n\n";
         }
 
         foreach ($props as $columnName => $meta) {
@@ -431,6 +441,26 @@ class DbGenerateClasses
 
         $name = $meta['name'];
         if (!empty($meta['defaultExpr']) && in_array($name, ['created', 'updated'], true)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array{name: string, sqlType: string, nullable: bool, unsigned?: bool, autoIncrement?: bool, pk?: bool, defaultExpr?: string} $meta
+     */
+    private static function shouldSkipOnUpdate(string $tableName, string $columnName, array $meta): bool
+    {
+        if (!empty($meta['autoIncrement'])) {
+            return true;
+        }
+
+        if ($columnName === 'created') {
+            return true;
+        }
+
+        if ($columnName === $tableName . '_uuid') {
             return true;
         }
 

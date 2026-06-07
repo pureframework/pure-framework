@@ -97,6 +97,7 @@ To add custom encode/decode behavior, override those methods in your subclass (r
 |--------|---------|
 | `objectFactory()` | Build a row object from data; optional explicit UUID column |
 | `objectInsertFactory()` | Build a row object for INSERT; honors `$insertSkip`, auto UUID |
+| `objectUpdateFactory()` | Build a row object for UPDATE; honors `$updateSkip`, never auto UUID |
 | `prepareWhereStatement()` | Build `WHERE` clauses from associative arrays |
 | `encodeHexLiteral()` | MySQL `x'...'` literal for binary UUIDs |
 | `pagingFor()` | Row/page counts for pagination |
@@ -232,7 +233,7 @@ See [Example site layout](example-site.md#dto-loading-option-a-vs-option-b) for 
 
 ### Typed output (`--typed`)
 
-Works with **either** option. Adds `@property` docblocks, PHP typed properties, `$uuidProperty`, and `$insertSkip` for auto-increment and timestamp columns:
+Works with **either** option. Adds `@property` docblocks, PHP typed properties, `$uuidProperty`, `$insertSkip` for auto-increment and timestamp columns, and `$updateSkip` for identity and immutable columns:
 
 ```bash
 # Option A
@@ -258,6 +259,9 @@ class account {
   /** @var list<string> Columns omitted on insert (auto-increment / DB defaults) */
   public static array $insertSkip = ['id', 'created', 'updated'];
 
+  /** @var list<string> Columns omitted on update (identity / immutable) */
+  public static array $updateSkip = ['id', 'created', 'account_uuid'];
+
   public int $id = 0;
   public string $created = '';
   public ?string $deleted_at = null;
@@ -266,25 +270,32 @@ class account {
 
 Use `DB::objectInsertFactory()` in entity `create()` helpers — it respects `$insertSkip` and auto-populates the UUID from `$uuidProperty` (or `{table}_uuid` when untyped). Pass an explicit `$fields` whitelist when building from HTTP input; omit `$fields` when `$data` is already validated in code.
 
-For updates or partial row assembly, use `DB::objectFactory()` with `$populateUuidProperty = false` (no auto UUID).
+Use `DB::objectUpdateFactory()` in entity `update()` helpers — it respects `$updateSkip` and never generates a new UUID. Pass an explicit `$fields` whitelist when building from HTTP input. Omit `updated` from the patch to let `ON UPDATE CURRENT_TIMESTAMP` apply, or set it explicitly in entity code when needed.
 
-### `objectFactory` / `objectInsertFactory`
+For general row assembly without skip lists, use `DB::objectFactory()` with `$populateUuidProperty = false` (no auto UUID).
+
+### `objectFactory` / `objectInsertFactory` / `objectUpdateFactory`
 
 ```php
 // Insert — auto UUID, honors $insertSkip on typed DTOs
 $obj = DB::objectInsertFactory('account', $data);
 $obj = DB::objectInsertFactory(account::class, $fields, $data);
 
+// Update — honors $updateSkip on typed DTOs; never auto UUID
+$obj = DB::objectUpdateFactory('account', $data);
+$obj = DB::objectUpdateFactory(account::class, $fields, $data);
+
 // General row build — UUID only when you pass the column name
 $obj = DB::objectFactory('account', $data, $fields, 'account_uuid');
-$obj = DB::objectFactory('account', $data, $fields, false); // updates: no new UUID
+$obj = DB::objectFactory('account', $data, $fields, false);
 ```
 
-| Argument | `objectFactory` | `objectInsertFactory` |
-|----------|-----------------|------------------------|
-| `$data` | Source values (array or object) | Same |
-| `$fields` | `null` = keys from `$data`; array = whitelist | Same |
-| `$populateUuidProperty` | `string` = generate; `false` = skip; `null` = skip | `null` = auto (`$uuidProperty` or `{name}_uuid`); `string` = explicit; `false` = skip |
+| Argument | `objectFactory` | `objectInsertFactory` | `objectUpdateFactory` |
+|----------|-----------------|------------------------|------------------------|
+| `$data` | Source values (array or object) | Same | Same |
+| `$fields` | `null` = keys from `$data`; array = whitelist | Same | Same |
+| `$populateUuidProperty` | `string` = generate; `false` = skip; `null` = skip | `null` = auto (`$uuidProperty` or `{name}_uuid`); `string` = explicit; `false` = skip | *(not accepted — never auto UUID)* |
+| Skip list | none | `$insertSkip` | `$updateSkip` |
 
 ### Application script (`scripts/generate-dto-classes.php`)
 
