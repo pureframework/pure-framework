@@ -90,4 +90,29 @@ final class DisplayTest extends TestCase
 		chdir($cwdBackup);
 		$this->assertSame(realpath($resolveHtdocs404), realpath((string) $htdocsFile));
 	}
+
+	public function testNotFoundChdirsBeforeRequiringHandler(): void
+	{
+		$handler404 = Util::path($this->fixturePath('display-notfound-chdir'), '404.php');
+		$awayCwd = $this->fixturePath('display');
+		$bootstrap = Util::path(self::projectRoot(), 'tests', 'bootstrap.php');
+		$script = Util::path(sys_get_temp_dir(), 'pure-display-notfound-test-' . uniqid('', true) . '.php');
+		file_put_contents(
+			$script,
+			<<<PHP
+<?php
+require '{$bootstrap}';
+chdir('{$awayCwd}');
+\PureFramework\Display::notFound('{$handler404}');
+PHP
+		);
+
+		$output = [];
+		$exitCode = 0;
+		exec(PHP_BINARY . ' ' . escapeshellarg($script) . ' 2>&1', $output, $exitCode);
+		unlink($script);
+
+		$this->assertSame(0, $exitCode);
+		$this->assertSame('NOTFOUND-CHDIR-OK', implode("\n", $output));
+	}
 }

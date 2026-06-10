@@ -87,7 +87,10 @@ class Display
 		$file = self::resolve404HandlerFile($handler404);
 		if ($file !== null) {
 			HttpResponse::status(404);
+			$__notfound_previous_cwd = getcwd();
+			chdir(dirname($file));
 			require $file;
+			chdir($__notfound_previous_cwd);
 			exit;
 		}
 
